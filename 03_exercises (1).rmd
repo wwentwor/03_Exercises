@@ -88,7 +88,8 @@ garden_harvest %>%
   summarise(total_weight_lbs = sum(weight_lbs)) %>%
   pivot_wider(id_cols = vegetable,
              names_from = day,
-             values_from = total_weight_lbs)
+             values_from = total_weight_lbs,
+             values_fill = 0)
  
 ```
 
@@ -103,13 +104,24 @@ garden_harvest %>%
             by = "variety")
 ```
 
-Some varieties were planted in different plots but the total weight in pounds does not take that into account. To fix this, I'd join the data sets first, then find the total weight in pounds by each plot and variety. 
+**Some varieties were planted in different plots but the total weight in pounds does not take that into account. To fix this, I'd join the data sets first, then find the total weight in pounds by each plot and variety.** 
 
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `supply_cost` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
+
+**You could join the data sets together so that the total weight in pounds and total cost of each variety of vegetable are together. Then you could create a variable for the cost per lbs x total weight of each vegetable in lbs from the prices on Whole Foods website. From there you could  find the total cost of gardening and subtract the total cost at whole foods to determine how much you saved.** 
 
   4. Subset the data to tomatoes. Reorder the tomato varieties from smallest to largest first harvest date. Create a barplot of total harvest in pounds for each variety, in the new order.
 
 ```{r}
+garden_harvest %>%
+  filter(vegetable == "tomatoes") %>%
+  group_by(variety) %>%
+  summarise(total_weight = (sum(weight))/453.59237) %>%
+  ggplot(aes(x = total_weight,
+             y = fct_rev(fct_relevel(variety, "volunteers", "Old German", "Amish Paste", "Black Krim", "Bonny Best", "Mortgage Lifter", "Brandywine", "Jet Star", "Cherokee Purple", "Better Boy", "Big Beef", "grape"))))+
+  geom_col()
+  
+               
 
 ```
 
