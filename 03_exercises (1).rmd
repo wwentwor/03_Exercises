@@ -95,8 +95,15 @@ garden_harvest %>%
   2. Summarize the `garden_harvest` data to find the total harvest in pound for each vegetable variety and then try adding the `plot` variable from the `plant_date_loc` table. This will not turn out perfectly. What is the problem? How might you fix it?
 
 ```{r}
-
+garden_harvest %>%
+  mutate(weight_lbs = weight / 453.59237) %>%
+  group_by(variety) %>%
+  summarise(total_weight_lbs = sum(weight_lbs)) %>%
+  left_join(plant_date_loc,
+            by = "variety")
 ```
+
+Some varieties were planted in different plots but the total weight in pounds does not take that into account. To fix this, I'd join the data sets first, then find the total weight in pounds by each plot and variety. 
 
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `supply_cost` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
 
