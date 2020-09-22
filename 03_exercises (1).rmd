@@ -12,7 +12,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -119,7 +119,10 @@ garden_harvest %>%
   summarise(total_weight = (sum(weight))/453.59237) %>%
   ggplot(aes(x = total_weight,
              y = fct_rev(fct_relevel(variety, "volunteers", "Old German", "Amish Paste", "Black Krim", "Bonny Best", "Mortgage Lifter", "Brandywine", "Jet Star", "Cherokee Purple", "Better Boy", "Big Beef", "grape"))))+
-  geom_col()
+  geom_col() +
+  labs(title = "Total Harvest in Pounds",
+       x = "Variety of Tomato",
+       y = "Total Harvest Weight in lbs")
   
                
 
@@ -169,7 +172,7 @@ Here is the code to read in the data. We do this a little differently than usual
 
 ```{r cache=TRUE}
 data_site <- 
-  "https://www.macalester.edu/~dshuman1/data/112/2014-Q4-Trips-History-Data-Small.rds" 
+  "https://www.macalester.edu/~dshuman1/data/112/2014-Q4-Trips-History-Data.rds" 
 Trips <- readRDS(gzcon(url(data_site)))
 Stations<-read_csv("http://www.macalester.edu/~dshuman1/data/112/DC-Stations.csv")
 ```
@@ -185,9 +188,14 @@ It's natural to expect that bikes are rented more at some times of day, some day
 ```{r}
 Trips %>%
   ggplot(aes(x = sdate))+
-  geom_density()
+  geom_density() +
+  labs(title = "Density of Quartly Rentals",
+       y = "Frequency of Bike Rentals",
+       x = "Date")
 
 ```
+  
+  **This shows the how the number of rentals was spread out throughout the quarter. It clearly shows that as the months get colder, bike rentals slow.** 
   
   8. A density plot of the events versus time of day.  You can use `mutate()` with `lubridate`'s  `hour()` and `minute()` functions to extract the hour of the day and minute within the hour from `sdate`. Hint: A minute is 1/60 of an hour, so create a variable where 3:30 is 3.5 and 3:45 is 3.75.
   
@@ -195,10 +203,15 @@ Trips %>%
 Trips %>%
   mutate(time_of_day = hour(sdate)+(minute(sdate)/60)) %>%
   ggplot(aes(x = time_of_day))+
-  geom_density() 
+  geom_density() +
+  labs(title = "Density of Daily Rentals",
+       y = "Frequency of Bike Rentals",
+       x = "Time")
   
   
 ```
+  
+  **This graph shows how rentals are spread out during the average day. There are clearly two peaks around 9am and 5:30pm, suggesting that many of the bike rentals are from people commuting to and from work.** 
   
   9. A bar graph of the events versus day of the week. Put day on the y-axis.
   
@@ -206,8 +219,13 @@ Trips %>%
 Trips %>%
   mutate(day = wday(sdate, label = TRUE)) %>%
   ggplot(aes(y = day)) +
-  geom_bar() 
+  geom_bar()+
+  labs(title = "Daily Bike Rentals",
+       y = "Day of the Week",
+       x = "Bikes Rented")
 ```
+  
+  **More bikes are rented during the week than on the weekends. This further suggests that a majority of people using the bikes are commuting to and from work.**
   
   10. Facet your graph from exercise 8. by day of the week. Is there a pattern?
   
@@ -217,8 +235,13 @@ Trips %>%
          day = wday(sdate, label = TRUE)) %>%
   ggplot(aes(x = time_of_day))+
   geom_density()+
-  facet_wrap(vars(day))
+  facet_wrap(vars(day))+
+  labs(title = "Density of Daily Rentals by Day of the Week",
+       y = "Density of Bike Rentals",
+       x = "Time of Day")
 ```
+  
+  **On the weekdays, the graphs have two distinct peaks in the morning and late afternoon, but on the weekends there is a single peak at midday/early afternoon. This suggests that on the weekends most bike rentals are used for tourist/leisurely purposes, whereas during the week they are used for commuting.**
   
 The variable `client` describes whether the renter is a regular user (level `Registered`) or has not joined the bike-rental organization (`Causal`). The next set of exercises investigate whether these two different categories of users show different rental behavior and how `client` interacts with the patterns you found in the previous exercises. Repeat the graphic from Exercise \@ref(exr:exr-temp) (d) with the following changes:
 
@@ -230,8 +253,13 @@ Trips %>%
          day = wday(sdate, label = TRUE)) %>%
   ggplot(aes(x = time_of_day))+
   geom_density(aes(fill = client, alpha = .5))+
-  facet_wrap(vars(day))
+  facet_wrap(vars(day))+
+   labs(title = "Density of Daily Rentals by Day of the Week",
+       y = "Density of Bike Rentals",
+       x = "Time of Day")
 ```
+
+**This graph suggests that, during the week, most commuters are registered renters, whereas the leisurely riders are more likely causal renters, as the registered graphs have the distinct peaks on the weekdays, where the casual graph does not.**  
 
   12. Change the previous graph by adding the argument `position = position_stack()` to `geom_density()`. In your opinion, is this better or worse in terms of telling a story? What are the advantages/disadvantages of each?
   
@@ -242,7 +270,10 @@ Trips %>%
   ggplot(aes(x = time_of_day))+
   geom_density(aes(fill = client, alpha = .5),
                position = position_stack())+
-  facet_wrap(vars(day))
+  facet_wrap(vars(day)) +
+   labs(title = "Density of Daily Rentals by Day of the Week",
+       y = "Density of Bike Rentals",
+       x = "Time of Day")
 ```
   
   **While I think it is useful in telling an overall story as it shows the total density and how the two variables divide it up, I don't think it is as effective when comparing the two variables because they are stacked on top of each other. For example, when the graphs aren't stacked you can clearly see that during the week registered riders have two peaks around 9am and 5pm suggesting they are commuting to work, whereas casual riders have a single peak around midday.**   
@@ -257,10 +288,14 @@ Trips %>%
                           "Weekend",
                           "Weekday")) %>%
   ggplot(aes(x = time_of_day))+
-  geom_density(aes(fill = client, alpha = .5),
-               position = position_stack())+
-  facet_wrap(vars(weekend))
+  geom_density(aes(fill = client, alpha = .5))+
+  facet_wrap(vars(weekend)) +
+   labs(title = "Density of Daily Rentals",
+       y = "Density of Bike Rentals",
+       x = "Time of Day")
 ```
+  
+  **This graph shows that at the peak of rentals during the weekdays more registered users are riding than casual users. On the weekend its the opposite, where there are more casual casual useres than registered.**
   
   14. Change the graph from the previous problem to facet on `client` and fill with `weekday`. What information does this graph tell you that the previous didn't? Is one graph better than the other?
   
@@ -272,10 +307,14 @@ Trips %>%
                           "Weekend",
                           "Weekday")) %>%
   ggplot(aes(x = time_of_day))+
-  geom_density(aes(fill = weekend, alpha = .5),
-               position = position_stack())+
-  facet_wrap(vars(client))
+  geom_density(aes(fill = weekend, alpha = .5))+
+  facet_wrap(vars(client)) +
+   labs(title = "Density of Daily Rentals",
+       y = "Density of Bike Rentals",
+       x = "Time of Day")
 ```
+  
+  **Graph shows that casual ridership is lower during the week compared to the weekend. Registered ridership is the opposite, higher during the week and lower on the weekends. This suggests that casual riders tend to be from out of town or are tourists visiting the city on the weekends.** 
   
 ### Spatial patterns
 
@@ -287,9 +326,14 @@ Trips %>%
   group_by(sstation) %>%
   mutate(total_dep = n()) %>%
   ggplot(aes(x = long, y = lat, size = total_dep))+
-  geom_jitter(alpha = .2)
+  geom_jitter(alpha = .2)+
+   labs(title = "Total Number of Departures from each Station Location",
+       y = "Latitude",
+       x = "Longitude")
 
 ```
+  
+  **This graph allows us to visualize where these rentals are happening. This shows that most rentals are happening near downtown D.C.** 
   
   16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? (Again, we'll improve this next week when we learn about maps).
   
@@ -300,8 +344,13 @@ Trips %>%
   mutate(percent_casual = mean(client == "Casual")) %>%
   ggplot(aes(x = long, y = lat, color = percent_casual))+
   geom_jitter(alpha = .2) +
-  scale_color_gradient(low = "green", high = "blue")
+  scale_color_gradient(low = "green", high = "blue") +
+  labs(title = "Total Number of Departures from each Station Location",
+       y = "Latitude",
+       x = "Longitude")
 ```
+ 
+ **This graph allows us to track the total number of rentals by type of client throughout the city. If I had to guess, the dots with the highest percent casual are probably located at touristy hotspots on the National Mall like the Lincoln Memorial or Washington Monument.** 
   
 ### Spatiotemporal patterns
 
@@ -339,23 +388,49 @@ top_ten_trips %>%
   ggplot(aes(x = day, 
             y = prop_7dayclient)) +
   geom_col() +
-  facet_wrap(vars(client))
+  facet_wrap(vars(client)) +
+  labs(title = "Proportions of Departures by each Day and Client",
+       y = "Proportion of 7 Day Total",
+       x = "Day of the Week")
   
 ```
 
+**Casual riders ride much more often on the weekends, where registered riders ride much more often on the weekdays. This once again suggests that most registered riders are local commuters, whereas most casual riders are out of town tourists.**
 
 **DID YOU REMEMBER TO GO BACK AND CHANGE THIS SET OF EXERCISES TO THE LARGER DATASET? IF NOT, DO THAT NOW.**
 
 ## GitHub link
 
   20. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 03_exercises.Rmd, provide a link to the 03_exercises.md file, which is the one that will be most readable on GitHub.
-
+ 
+ [Here](https://github.com/wwentwor/03_Exercises/blob/master/03_exercises--1-.md)
+ 
 ## Challenge problem! 
 
 This problem uses the data from the Tidy Tuesday competition this week, `kids`. If you need to refresh your memory on the data, read about it [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-09-15/readme.md). 
 
   21. In this exercise, you are going to try to replicate the graph below, created by Georgios Karamanis. I'm sure you can find the exact code on GitHub somewhere, but **DON'T DO THAT!** You will only be graded for putting an effort into this problem. So, give it a try and see how far you can get without doing too much googling. HINT: use `facet_geo()`. The graphic won't load below since it came from a location on my computer. So, you'll have to reference the original html on the moodle page to see it.
   
+```{r}
+kids %>%
+  filter(variable == "lib",
+         year == c("1997") | year == c("2016")) %>%
+  ggplot(aes(x = year, 
+             y = inf_adj_perchild)) +
+  geom_line()+
+  facet_geo(vars(state))+
+  geom_text(aes(label=round(inf_adj_perchild, digits = 3)), 
+            size = 3) +
+   theme(legend.position = "none",
+        plot.background = element_rect("steelblue"),
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())+
+  labs(title = "Change in Public Spending on Libraries from 1997 to 2016",
+       subtitle = "Thousands of Dollars Spent per Child, adjusted for inflation")
+  
+```
 
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
