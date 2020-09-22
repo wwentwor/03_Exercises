@@ -294,7 +294,13 @@ Trips %>%
   16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? (Again, we'll improve this next week when we learn about maps).
   
 ```{r}
-
+Trips %>%
+  left_join(Stations, c("sstation" = "name")) %>%
+  group_by(client) %>%
+  mutate(percent_casual = mean(client == "Casual")) %>%
+  ggplot(aes(x = long, y = lat, color = percent_casual))+
+  geom_jitter(alpha = .2) +
+  scale_color_gradient(low = "green", high = "blue")
 ```
   
 ### Spatiotemporal patterns
@@ -302,19 +308,39 @@ Trips %>%
   17. Make a table with the ten station-date combinations (e.g., 14th & V St., 2014-10-14) with the highest number of departures, sorted from most departures to fewest. Save this to a new dataset and print out the dataset. Hint: `as_date(sdate)` converts `sdate` from date-time format to date format. 
   
 ```{r}
-
+Trips %>%
+  mutate(ymd = as_date(sdate)) %>%
+  group_by(ymd, sstation) %>%
+  summarise(n = n()) %>%    #I got a lot of help from my group on this one
+  arrange(desc(n)) %>%
+  head(10) -> top_ten_trips
+top_ten_trips
 ```
   
   18. Use a join operation to make a table with only those trips whose departures match those top ten station-date combinations from the previous part.
   
 ```{r}
-
+top_ten_trips %>%
+  left_join(Trips, by = "sstation")
 ```
   
   19. Build on the code from the previous problem (ie. copy that code below and then %>% into the next step.) and group the trips by client type and day of the week (use the name, not the number). Find the proportion of trips by day within each client type (ie. the proportions for all 7 days within each client type add up to 1). Display your results so day of week is a column and there is a column for each client type. Interpret your results.
 
 ```{r}
-
+top_ten_trips %>%
+  left_join(Trips, by = "sstation") %>%
+  mutate(day = wday(sdate, label = TRUE)) %>%
+  group_by(client) %>%
+  mutate(total_dep_client = n())%>%
+  group_by(day, client) %>%
+  mutate(total_per_day = n()) %>%
+  summarise(prop_7dayclient = total_per_day/total_dep_client) %>%
+  distinct(prop_7dayclient) %>%
+  ggplot(aes(x = day, 
+            y = prop_7dayclient)) +
+  geom_col() +
+  facet_wrap(vars(client))
+  
 ```
 
 
